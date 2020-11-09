@@ -101,4 +101,3 @@
   with_items: "{{ kubernetes_packages }}"
 
 
-#dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
