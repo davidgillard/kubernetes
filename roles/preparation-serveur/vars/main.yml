@@ -1,0 +1,7 @@
+---
+# vars file for preparation-serveur
+
+kubernetes_packages:
+- kubectl
+- kubeadm
+- kubelet

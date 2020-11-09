@@ -1,0 +1,8 @@
+---
+# Playbook pour le déploiement de differentes options sur les serveurs
+# filename: preparation-serveur.yaml
+- hosts: kube
+  remote_user: root
+  become: true
+  roles:
+    - role: preparation-serveur

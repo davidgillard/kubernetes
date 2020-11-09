@@ -1,0 +1,13 @@
+---
+- name: Désactiver le SWAP car kubernetes ne fonctionner avec si le swap activé
+  shell: swapoff -a
+
+- name: Disable swap permanently, persist reboots
+  replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes
+
+#curl -s https://packages.cloud.google.com/apt/doc/yum-key.gpg apt-key gpg
+

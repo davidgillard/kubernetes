@@ -1,0 +1,104 @@
+---
+- name: Mise à jour de l'OS
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Installation de curl
+  dnf:
+    name: 'curl'
+    state: latest
+
+# tasks for ansible-disable-selinux
+# - name: Install libselinux comme pre-requis pour le module SELinux Ansible
+#   dnf:
+#     name: "{{item}}"
+#     state: latest
+#   with_items:
+#     - libselinux-python
+#     - libsemanage-python
+
+- name: Désactivé SELinux au prochain redemarrage
+  selinux:
+    state: disabled
+
+- name: Set SELinux in permissive mode until the machine is rebooted
+  command: setenforce 0
+  ignore_errors: true
+  changed_when: false
+
+- name: activé transparent masquerading 
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: activé IP masquerade at the firewall.
+  firewalld:
+    masquerade: 'True'
+    state: enabled
+    permanent: yes
+
+- name: rechargement du service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
+
+# - name: install kubernetes yum repository
+#   yum_repository:
+#     name: kubernetes
+#     description: kubernetes
+#     baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+#     gpgcheck: true
+#     enablerepo: install
+#     gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+#     exclude:
+#       - kubelet
+#       - kubeadm
+#       - kubectl
+#   become: true
+
+- name: Execute cat 
+  shell: | 
+      cat > /etc/yum.repos.d/kubernetes.repo << EOF
+      [kubernetes]
+      name=Kubernetes
+      baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+      enabled=1
+      gpgcheck=1
+      repo_gpgcheck=1
+      gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      exclude=kubelet kubeadm kubectl
+      EOF
+
+
+# [kubernetes]
+# name=Kubernetes
+# baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+# enabled=1
+# gpgcheck=1
+# repo_gpgcheck=1
+# gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+# exclude=kubelet kubeadm kubectl
+
+- name: Mise à jour
+  dnf:
+    name: "*"
+    state: latest
+
+# - name: Installation de kubeadm kubectl kubelet
+#   dnf:
+#     name: 
+#       - "kubeadm"
+#       - "kubectl"
+#       - "kubelet"
+#     state: latest
+#     disable_excludes: kubernetes
+
+- name: Installation de kubernetes
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ kubernetes_packages }}"
+
+
+#dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes

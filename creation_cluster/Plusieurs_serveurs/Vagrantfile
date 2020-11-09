@@ -1,12 +1,17 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# config.vm.provision "ansible" do |ansible|
+#   ansible.verbose = "v"
+#   ansible.playbook = "playbook.yaml"
+# end
+
 Vagrant.configure("2") do |config|
     config.vm.define "kubmaster" do |kub|
-      kub.vm.box = "bento/ubuntu-16.04"
+      kub.vm.box = "generic/centos8"
       kub.vm.hostname = 'kubmaster'
       kub.vm.provision "docker"
-      kub.vm.box_url = "bento/ubuntu-16.04"
+      kub.vm.box_url = "generic/centos8"
   
       kub.vm.network :private_network, ip: "192.168.56.101"
   
@@ -19,10 +24,10 @@ Vagrant.configure("2") do |config|
     end
   
     config.vm.define "kubnode" do |kubnode|
-      kubnode.vm.box = "bento/ubuntu-16.04"
+      kubnode.vm.box = "generic/centos8"
       kubnode.vm.hostname = 'kubnode'
       kubnode.vm.provision "docker"
-      kubnode.vm.box_url = "bento/ubuntu-16.04"
+      kubnode.vm.box_url = "generic/centos8"
   
       kubnode.vm.network :private_network, ip: "192.168.56.102"
   
@@ -34,10 +39,10 @@ Vagrant.configure("2") do |config|
       end
     end
     config.vm.define "kubnode2" do |kubnode|
-      kubnode.vm.box = "bento/ubuntu-16.04"
+      kubnode.vm.box = "generic/centos8"
       kubnode.vm.hostname = 'kubnode2'
       kubnode.vm.provision "docker"
-      kubnode.vm.box_url = "bento/ubuntu-16.04"
+      kubnode.vm.box_url = "generic/centos8"
   
       kubnode.vm.network :private_network, ip: "192.168.56.103"
   

@@ -1,0 +1,4 @@
+---
+# This is a site wide playbook
+# filename: install.yml
+- import_playbook: preparation-serveur.yaml
