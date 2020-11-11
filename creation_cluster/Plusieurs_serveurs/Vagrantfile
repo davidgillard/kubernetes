@@ -1,11 +1,3 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
-
-# config.vm.provision "ansible" do |ansible|
-#   ansible.verbose = "v"
-#   ansible.playbook = "playbook.yaml"
-# end
-
 Vagrant.configure("2") do |config|
     config.vm.define "kubmaster" do |kub|
       kub.vm.box = "generic/centos8"
@@ -54,5 +46,3 @@ Vagrant.configure("2") do |config|
       end
     end
   end
-  
-  

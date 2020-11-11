@@ -95,9 +95,78 @@
 #     disable_excludes: kubernetes
 
 - name: Installation de kubernetes
-  yum:
+  dnf:
     name: "{{ item }}"
     state: present
+    disable_excludes: kubernetes
   with_items: "{{ kubernetes_packages }}"
 
+- name: active le service kubelet au démarrage
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes
 
+- name: réinitialisation du composant Kubernetes
+  shell: "kubeadm reset --force"
+  register: reset_cluster
+
+- name: Initialisation du cluster Kubernetes
+  when: reset_cluster is succeeded
+  shell: |
+    kubeadm init 
+  register: init_cluster
+
+- name: initialisation du cluster
+  shell: kubeadm config images pull
+  when: role=='master'
+
+- name: ouverture des ports nécessaire à kubernetes
+  firewalld:
+    port: "{{ item.port }}/tcp"
+    permanent: "{{ item.permanent }}"
+    zone: public
+    state: enabled
+  with_items:
+    - { port: '6443', permanent: true }
+    - { port: '2379', permanent: true }
+    - { port: '2380', permanent: true }
+    - { port: '10250', permanent: true }
+    - { port: '10251', permanent: true }
+    - { port: '10252', permanent: true }
+  when: role=='master'
+
+# - name: Permettre à docker acceder depuis les autres nodes, remplacer the worker-IP-address par la votre.
+#   firewalld:
+#     rich_rule: rule family=ipv4
+#     zone: public
+#     source: "{{ item.adresse }}/32"
+#     permanent: "{{ item.permanent }}"
+#     state: enabled
+#   with_items:
+#     - {adresse: '192.168.12.102', permanent: true}
+#     - {adresse: '192.168.12.103', permanent: true}
+
+- name: Permettre à docker acceder depuis les autres nodes, remplacer the worker-IP-address par la votre.
+  command: firewall-cmd --permanent --zone=public --add-rich-rule='rule family="ipv4" source address="{{ item }}/32" accept'
+  #command: firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=worker-IP-address/32 accept'
+  with_items:
+    - 192.168.12.102
+    - 192.168.12.103
+  when: role=='master'
+
+- name: Allow access to the host’s localhost from the docker container.
+  command: firewall-cmd --permanent --zone=public --add-rich-rule='rule family="ipv4" source address="172.17.0.0/16" accept'
+  when: role=='master'
+
+- name: Reload de firewalld
+  service: 
+    name: firewalld 
+    state: restarted
+  when: role=='master'
+
+- name: Installation de CNI
+  shell: |
+    kubeadm init --pod-network-cidr 192.168.0.0/16
+  when: role=='master'
+ 

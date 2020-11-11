@@ -1,7 +1,7 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+Cluster kubernetes
 
 Requirements
 ------------
@@ -35,35 +35,8 @@ BSD
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+David GILLARD
 
-Host kubmaster                                                                                                                              [444/1851]
-  HostName 127.0.0.1                                                                                                                                  
-  User vagrant                                                                                                                                        
-  Port 2200                                                                                                                                           
-  UserKnownHostsFile /dev/null                                                                                                                        
-  StrictHostKeyChecking no                                                                                                                            
-  PasswordAuthentication no                                                                                                                           
-  IdentityFile /home/david/Documents/kubernetes/creation-cluster/kubernetes/creation-cluster/Plusieurs_serveurs/.vagrant/machines/kubmaster/virtualbox/private_key                                                                                                                                          
-  IdentitiesOnly yes                                                                                                                                  
-  LogLevel FATAL                                                                                                                                      
-                                                                                                                                                      
-Host kubnode                                                                                                                                          
-  HostName 127.0.0.1                                                                                                                                  
-  User vagrant                                                                                                                                        
-  Port 2201                                                                                                                                             UserKnownHostsFile /dev/null                                                                                                                        
-  StrictHostKeyChecking no                                                                                                                            
-  PasswordAuthentication no                                                                                                                           
-  IdentityFile /home/david/Documents/kubernetes/creation-cluster/kubernetes/creation-cluster/Plusieurs_serveurs/.vagrant/machines/kubnode/virtualbox/p
-rivate_key                                                                                                                                            
-  IdentitiesOnly yes                                                                                                                                  
-  LogLevel FATAL                                                                                                                                      
-                                                                                                                                                      
-Host kubnode2                                                                                                                                         
-  HostName 127.0.0.1                                                                                                                                  
-  User vagrant                                                                                                                                          Port 2202                                                                                                                                           
-  UserKnownHostsFile /dev/null                                                                                                                          StrictHostKeyChecking no                                                                                                                            
-  PasswordAuthentication no                                                                                                                             IdentityFile /home/david/Documents/kubernetes/creation-cluster/kubernetes/creation-cluster/Plusieurs_serveurs/.vagrant/machines/kubnode2/virtualbox/
-private_key                                                                                                                                           
-  IdentitiesOnly yes                                                                                                                                  
-  LogLevel FATAL
+https://upcloud.com/community/tutorials/install-kubernetes-cluster-centos-8/
+
+  
