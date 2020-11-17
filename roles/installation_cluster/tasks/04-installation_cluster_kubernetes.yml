@@ -1,0 +1,36 @@
+---
+###########################################################################################
+########### Installation de Kubernetes sur les nœuds maître et de travail       ###########
+########### Ajoutez le référentiel Kubernetes à votre gestionnaire de packages  ###########
+########### en créant le fichier suivant ##################################################
+
+- name: Execute cat 
+  shell: | 
+      cat > /etc/yum.repos.d/kubernetes.repo << EOF
+      [kubernetes]
+      name=Kubernetes
+      baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+      enabled=1
+      gpgcheck=1
+      repo_gpgcheck=1
+      gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      exclude=kubelet kubeadm kubectl
+      EOF
+
+- name: Mise à jour
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Installation de kubernetes
+  dnf:
+    name: "{{ item }}"
+    state: present
+    disable_excludes: kubernetes
+  with_items: "{{ kubernetes_packages }}"
+
+- name: active le service kubelet au démarrage
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes

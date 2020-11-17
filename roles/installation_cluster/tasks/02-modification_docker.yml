@@ -1,0 +1,21 @@
+---
+################################################################
+####################  Modification de docker  ##################
+
+- name: Modification du service docker's cgroup-driver
+  shell: sed -i '/^ExecStart/ s/$/ --exec-opt native.cgroupdriver=systemd/' /usr/lib/systemd/system/docker.service
+  register: docker_cgroup_driver
+
+- name: Just force systemd to re-execute itself (2.8 and above)
+  systemd:
+    daemon_reexec: yes
+
+- name: rendre le service docker Enable
+  systemd:
+    name: docker
+    enabled: yes  
+
+- name: reload du service docker
+  systemd:
+    name: docker
+    state: restarted

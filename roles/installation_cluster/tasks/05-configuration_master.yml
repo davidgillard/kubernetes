@@ -1,0 +1,111 @@
+#######################################################################################
+##### Configuration de Kubernetes sur le nœud maître uniquement #######################
+##### Une fois Kubernetes installé, il doit être configuré pour former un cluster. ####
+#######################################################################################
+
+#############################################################################
+#################### Configurez kubeadm #####################################
+#############################################################################
+
+- name: initialisation du cluster
+  shell: kubeadm config images pull
+  when: role=='master'
+
+##############################################################################
+######### Ouvrez les ports nécessaires utilisés par Kubernetes. ##############
+##############################################################################
+
+- name: ouverture des ports nécessaire à kubernetes
+  firewalld:
+    port: "{{ item.port }}/tcp"
+    permanent: "{{ item.permanent }}"
+    zone: public
+    state: enabled
+  with_items:
+    - { port: '6443', permanent: true }
+    - { port: '2379', permanent: true }
+    - { port: '2380', permanent: true }
+    - { port: '10250', permanent: true }
+    - { port: '10251', permanent: true }
+    - { port: '10252', permanent: true }
+  when: role=='master'
+
+############################################################################################
+###### Autorisez l'accès au docker à partir d'un autre nœud, remplacez l' adresse IP #######
+###### des workers par les vôtres ##############################################################
+
+- name: Permettre à docker acceder depuis les autres nodes, remplacer the worker-IP-address par les votre.
+  command: firewall-cmd --permanent --zone=public --add-rich-rule='rule family="ipv4" source address="{{ item }}/32" accept'
+  with_items:
+    - 192.168.12.102
+    - 192.168.12.103
+  when: role=='master'
+
+###########################################################################################
+########## Autorisez l'accès à l'hôte local de l'hôte à partir du conteneur Docker. #######
+###########################################################################################
+
+- name: Autorisez l'accès à l'hôte local de l'hôte à partir du conteneur Docker.
+  command: firewall-cmd --permanent --zone=public --add-rich-rule='rule family="ipv4" source address="172.17.0.0/16" accept'
+  when: role=='master'
+
+#######################################################
+###### Rendez les modifications permanentes. ##########
+#######################################################
+
+- name: Reload de firewalld
+  service: 
+    name: firewalld 
+    state: restarted
+  when: role=='master'
+
+#################################################################################################################################################
+#### Installez le plugin CNI (Container Network Interface) pour Kubernetes ######################################################################
+#### Pour cette configuration, nous utiliserons Calico: https://docs.projectcalico.org/getting-started/kubernetes/quickstart#overview ###########
+#### Exécutez la commande suivante: #############################################################################################################
+##################################################################################
+
+- name: Vérifier si l'initilisation du cluster a déjà été réalisé
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: cluster
+
+- name: Installation de CNI
+  shell: |
+    kubeadm init --pod-network-cidr {{ pod_network_cidr }} --apiserver-advertise-address "{{ k8s_master_ip }}"
+  #run_once: true
+  when: role=='master' and not cluster.stat.exists 
+
+##################################################################################################################################################################
+#### Vous devriez voir quelque chose comme l'exemple ci-dessous. Notez le jeton de découverte, il est nécessaire pour joindre les nœuds de travail au cluster. ###
+#### Notez que le jeton de jointure ci-dessous n'est qu'un exemple. ##############################################################################################
+#### exemple : kubeadm join 192.168.12.101:6443 --token xhlhx9.yr6rac0k1w1q8lxs     --discovery-token-ca-cert-hash sha256:b1440bfbca0fd5 \ #######################
+#### 72e99c87fb43b38daaa0805083f032d4a4c9ee0097c9db9ffc ##########################################################################################################
+##################################################################################################################################################################
+
+
+#####################################################################################
+### Créez le répertoire et les fichiers de configuration suivants. ##################
+#####################################################################################
+
+- name: Setup kubeconfig for vagrant user
+  command: "{{ item }}"
+  with_items:
+    - mkdir -p /home/vagrant/.kube
+    - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+    - chown vagrant:vagrant /home/vagrant/.kube/config
+  when: role=='master' and not cluster.stat.exists
+
+##############################################################################
+######## Mise en place de Calico #############################################
+##############################################################################
+
+- name: Install calico pod network
+  become: false
+  command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+  when: role=='master' and not cluster.stat.exists
+
+# - name: Installation de CNI
+#   shell: |
+#     kubectl get nodes
+#   when: role=='master'

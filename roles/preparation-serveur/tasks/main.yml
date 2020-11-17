@@ -1,4 +1,0 @@
----
-# tasks file for preparation-serveur
-- include: suppression-swap.yaml
-- include: installation_dependance.yaml

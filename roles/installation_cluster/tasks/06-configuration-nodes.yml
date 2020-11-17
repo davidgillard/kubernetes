@@ -1,0 +1,62 @@
+---
+###################################################################
+#### Configuration de Kubernetes on the Worker node uniquement ####
+###################################################################
+
+- name: ouverture des ports nécessaire à kubernetes
+  firewalld:
+    port: "{{ item.port }}/tcp"
+    permanent: "{{ item.permanent }}"
+    zone: public  
+    state: enabled
+  with_items:
+    - { port: '10250', permanent: true }
+    - { port: '30000', permanent: true }
+    - { port: '32767', permanent: true }
+  when: role=='node'
+
+- name: Reload de firewalld
+  service: 
+    name: firewalld 
+    state: restarted
+  when: role=='node'
+
+###########################################################################################
+################# autres solution pour effectuer le join ##################################
+###########################################################################################
+
+- name: Generate join token
+  shell: kubeadm token create --print-join-command
+  register: kubeadm_join_cmd
+  when: role=='master'
+  ignore_errors: yes
+  
+- set_fact:
+    kubeadm_join: "{{ kubeadm_join_cmd.stdout }}"
+  ignore_errors: yes
+  #when: role=='master'
+
+- debug: 
+    var: kubeadm_join
+  #when: role=='master'
+
+- name: Store join command
+  action: copy content="{{ kubeadm_join }}" dest="/etc/kubernetes/kubeadm-join.command"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['groupe_nodes'] }}"
+  ignore_errors: yes
+
+- name: Changer les droits de kubeadm_join.command
+  file: 
+    dest: "/etc/kubernetes/kubeadm-join.command"
+    mode: a+x
+  when: role=='node'
+
+- name: Vérifier si l'initilisation du cluster a déjà été réalisé
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: joindre_cluster
+
+- name: Run kubeadm join
+  shell: "/etc/kubernetes/kubeadm-join.command --ignore-preflight-errors=swap"
+  when: role=='node' and not joindre_cluster.stat.exists

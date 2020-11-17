@@ -5,3 +5,7 @@ kubernetes_packages:
 - kubectl
 - kubeadm
 - kubelet
+
+
+pod_network_cidr : 192.168.0.0/16
+k8s_master_ip : 192.168.12.101

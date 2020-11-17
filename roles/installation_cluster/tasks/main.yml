@@ -1,0 +1,8 @@
+---
+# tasks file for preparation-serveur
+- include: 01-suppression-swap.yml
+- include: 02-modification_docker.yml
+- include: 03-installation_dependance.yml
+- include: 04-installation_cluster_kubernetes.yml
+- include: 05-configuration_master.yml
+- include: 06-configuration-nodes.yml
